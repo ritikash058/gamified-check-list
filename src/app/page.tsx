@@ -1,103 +1,281 @@
-import Image from "next/image";
+"use client"
+import { useState, useEffect } from 'react';
 
-export default function Home() {
+const App = () => {
+  const [tasks, setTasks] = useState([
+    { id: 1, text: "The Great Gatsby by F. Scott Fitzgerald", completed: false },
+    { id: 2, text: "To Kill a Mockingbird by Harper Lee", completed: false },
+    { id: 3, text: "Pride and Prejudice by Jane Austen", completed: false },
+    { id: 4, text: "The Catcher in the Rye by J.D. Salinger", completed: false },
+  ]);
+
+  const [newTask, setNewTask] = useState('');
+
+  const generateCheckpoints = () => {
+    const count = tasks.length;
+    const checkpoints = [];
+
+    for (let i = 0; i < count; i++) {
+      const y = ((tasks.length * 10) / (count - 1)) * i;
+      const x = 50 + (i % 2 === 0 ? -20 : 20);
+      checkpoints.push({
+        name: tasks[i].text,
+        position: { x, y },
+        color: "bg-pink-500",
+        status: i === 0 ? 'completed' : 'pending',
+      });
+    }
+
+    return checkpoints;
+  };
+
+  const [checkpoints, setCheckpoints] = useState(generateCheckpoints);
+  const completedCount = tasks.filter((task) => task.completed).length;
+  const totalTasks = tasks.length;
+
+  // Determine current checkpoint index based on completed tasks
+  const currentCheckpointIndex = Math.min(
+    completedCount,
+    checkpoints.length - 1
+  );
+
+  // Toggle task completion
+  const toggleTask = (id:any) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
+  // Add new task
+  const addTask = () => {
+    if (newTask.trim()) {
+      const newId = Date.now();
+      setTasks([
+        ...tasks,
+        {
+          id: newId,
+          text: newTask.trim(),
+          completed: false,
+        },
+      ]);
+      setNewTask('');
+    }
+  };
+
+  // Delete task
+  const deleteTask = (id:any) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  // Recalculate checkpoints when tasks change
+  useEffect(() => {
+    setCheckpoints(generateCheckpoints());
+  }, [tasks]);
+
+  // Get path data for SVG
+  const getZigZagPath = (index:number) => {
+    let pathData = '';
+    if (index < 1) return '';
+
+    const prevCheckpoint = checkpoints[index - 1];
+    const checkpoint = checkpoints[index];
+
+    const x1 = prevCheckpoint.position.x;
+    const y1 = prevCheckpoint.position.y;
+    const x2 = checkpoint.position.x;
+    const y2 = checkpoint.position.y;
+
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+
+    const controlX = midX;
+    const controlY = index % 2 === 0 ? midY - 6 : midY + 6;
+
+    pathData += `M ${x1} ${y1} Q ${controlX} ${controlY} ${x2} ${y2}`;
+    return pathData;
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-emerald-100 to-teal-200 p-6">
+      <div className="max-w-6xl mx-auto flex gap-8 justify-between items-start flex-wrap lg:flex-nowrap">
+        {/* Task List Section */}
+        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-xl p-6 flex flex-col gap-6">
+          <h2 className="text-2xl font-bold text-gray-800">📚 Your Reading Journey</h2>
+          <p className="text-gray-600">Complete books to move along your path.</p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+          {/* Input Form */}
+          <div className="flex gap-3">
+            <input
+              type="text"
+              value={newTask}
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
+              placeholder="Add a new book..."
+              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <button
+              onClick={addTask}
+              className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              Add
+            </button>
+          </div>
+
+          {/* Task List */}
+          <div className="space-y-3 h-[400px] overflow-y-auto scrollbar-thin">
+            {tasks.map((task) => (
+              <div
+                key={task.id}
+                className={`bg-white rounded-lg p-4 flex items-center gap-4 shadow-sm transition-all duration-300 hover:shadow-md ${
+                  task.completed ? 'opacity-70' : ''
+                }`}
+              >
+                <button
+                  onClick={() => toggleTask(task.id)}
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                    task.completed
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'border-gray-400 hover:border-blue-500 hover:bg-blue-100'
+                  }`}
+                >
+                  {task.completed && '✓'}
+                </button>
+                <span
+                  className={`flex-1 text-gray-800 ${
+                    task.completed ? 'line-through opacity-70' : ''
+                  }`}
+                >
+                  {task.text}
+                </span>
+                <button
+                  onClick={() => deleteTask(task.id)}
+                  className="w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+            {tasks.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No books yet. Add one to start your journey!
+              </div>
+            )}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Gamified Path Section */}
+        <div className="w-full lg:w-1/2 flex flex-col">
+          {/* Progress Stats */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="flex justify-between text-sm text-gray-600 mb-1">
+              <span>Progress</span>
+              <span>{completedCount} / {totalTasks}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${(completedCount / totalTasks) * 100}%` }}
+              ></div>
+            </div>
+          </div>
+          <div className="relative h-[70vh] rounded-xl overflow-hidden bg-white shadow-lg border border-gray-200">
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Background Dashed Path */}
+              {checkpoints.map((_, idx) => (
+                <path
+                  key={`bg-${idx}`}
+                  d={getZigZagPath(idx)}
+                  fill="none"
+                  stroke="rgba(0,0,0,0.1)"
+                  strokeWidth="0.5"
+                  strokeDasharray="2,2"
+                />
+              ))}
+
+              {/* Active Animated Segments */}
+              {checkpoints.slice(1).map((_, idx) => (
+                <path
+                  key={`active-${idx}`}
+                  d={getZigZagPath(idx + 1)}
+                  fill="none"
+                  stroke="url(#gradient)"
+                  strokeWidth="1.2"
+                  strokeDasharray="100"
+                  strokeDashoffset={tasks[idx]?.completed ? 0 : 100}
+                  strokeLinecap="round"
+                  className="transition-all duration-700 ease-out"
+                  filter={tasks[idx]?.completed ? "url(#glow)" : ""}
+                />
+              ))}
+
+              {/* Gradient Definition */}
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#3B82F6" />
+                  <stop offset="25%" stopColor="#10B981" />
+                  <stop offset="50%" stopColor="#F59E0B" />
+                  <stop offset="75%" stopColor="#EF4444" />
+                  <stop offset="100%" stopColor="#8B5CF6" />
+                </linearGradient>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+            </svg>
+
+            {/* Checkpoints */}
+            {checkpoints.map((checkpoint, index) => {
+              const isCompleted = index <= currentCheckpointIndex;
+              const isActive = index === currentCheckpointIndex;
+              const isVictory = index === checkpoints.length - 1;
+
+              return (
+                <div
+                  key={index}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2 z-20 cursor-pointer group"
+                  style={{
+                    left: `${checkpoint.position.x}%`,
+                    top: `${checkpoint.position.y}%`,
+                  }}
+                >
+                  {/* Checkpoint Circle */}
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold shadow-md transition-all duration-500 ${
+                      isCompleted
+                        ? `${checkpoint.color} text-white scale-110  ${
+                            isVictory ? 'animate-pulse scale-125' : ''
+                          }`
+                        : isActive
+                        ? `${checkpoint.color} text-white shadow-lg scale-125 animate-bounce`
+                        : 'bg-gray-300 text-gray-500 scale-90'
+                    }`}
+                  >
+                    {isCompleted && !isVictory && '✓'}
+                  </div>
+
+                  {/* Tooltip */}
+                  { isActive && (
+                    <div
+                      className={`absolute left-full ml-3 top-1/2 transform -translate-y-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded whitespace-nowrap duration-300 pointer-events-none`}
+                    >
+                      {checkpoint.name}
+                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-black/80"></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default App;

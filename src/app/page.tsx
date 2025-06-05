@@ -98,10 +98,10 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-emerald-100 to-teal-200 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-400 to-teal-200 p-6">
       <div className="max-w-6xl mx-auto flex gap-8 justify-between items-start flex-wrap lg:flex-nowrap">
         {/* Task List Section */}
-        <div className="w-full lg:w-1/2 bg-white rounded-2xl shadow-xl p-6 flex flex-col gap-6">
+        <div className="w-full lg:w-1/2 bg-transparent rounded-2xl border border-gray-200 shadow-xl p-6 flex flex-col gap-6">
           <h2 className="text-2xl font-bold text-gray-800">📚 Your Reading Journey</h2>
           <p className="text-gray-600">Complete books to move along your path.</p>
 
@@ -113,23 +113,23 @@ const App = () => {
               onChange={(e) => setNewTask(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addTask()}
               placeholder="Add a new book..."
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="flex-1 px-4 py-3 rounded-xl placeholder-white/60 border border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
             />
             <button
               onClick={addTask}
-              className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
+              className="px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-lg font-semibold transition-all duration-200 hover:scale-105 active:scale-95"
             >
               Add
             </button>
           </div>
 
           {/* Task List */}
-          <div className="space-y-3 h-[400px] overflow-y-auto scrollbar-thin">
+          <div className="space-y-3 h-[400px] overflow-y-auto scrollbar-none">
             {tasks.map((task) => (
               <div
                 key={task.id}
-                className={`bg-white rounded-lg p-4 flex items-center gap-4 shadow-sm transition-all duration-300 hover:shadow-md ${
-                  task.completed ? 'opacity-70' : ''
+                className={`bg-white/10 backdrop-blur-medium rounded-lg p-4 flex items-center gap-4 shadow-sm transition-all duration-300 hover:shadow-md ${
+                  task.completed ? 'transform scale-95 opacity-40' : 'hover:scale-[1.02]'
                 }`}
               >
                 <button
@@ -166,21 +166,26 @@ const App = () => {
         </div>
 
         {/* Gamified Path Section */}
-        <div className="w-full lg:w-1/2 flex flex-col">
+        <div className="w-full lg:w-1/2 flex flex-col gap-5">
           {/* Progress Stats */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Progress</span>
-              <span>{completedCount} / {totalTasks}</span>
+          <div className="bg-white/10 shadow-lg rounded-lg p-4 flex flex-col gap-1">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white/80">{tasks[currentCheckpointIndex].text}</span>
+              <span className="text-white font-bold">{Math.round((completedCount / totalTasks) * 100)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-700 ease-out"
-                style={{ width: `${(completedCount / totalTasks) * 100}%` }}
+            <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-green-400 to-blue-500 h-full rounded-full transition-all duration-1000 ease-out"
+                style={{ width:`${(completedCount / totalTasks) * 100}%` }}
               ></div>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-white/80">Tasks Completed</span>
+              <span className="text-white font-bold">{completedCount} / {totalTasks}</span>
+            </div>
           </div>
-          <div className="relative h-[70vh] rounded-xl overflow-hidden bg-white shadow-lg border border-gray-200">
+        
+          <div className="relative h-[70vh] rounded-xl bg-white shadow-lg border border-gray-200">
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* Background Dashed Path */}
               {checkpoints.map((_, idx) => (
@@ -191,6 +196,7 @@ const App = () => {
                   stroke="rgba(0,0,0,0.1)"
                   strokeWidth="0.5"
                   strokeDasharray="2,2"
+                  className='transition-all duration-700 ease-out px-4'
                 />
               ))}
 
